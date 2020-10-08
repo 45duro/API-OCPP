@@ -14,7 +14,7 @@ except ModuleNotFoundError:
 
 from ocpp.routing import on
 from ocpp.v16 import ChargePoint as cp
-from ocpp.v16.enums import Action, RegistrationStatus
+from ocpp.v16.enums import Action, RegistrationStatus, AuthorizationStatus
 from ocpp.v16 import call_result
 
 logging.basicConfig(level=logging.INFO)
@@ -27,6 +27,12 @@ class ChargePoint(cp):
             current_time=datetime.utcnow().isoformat(),
             interval=10,
             status=RegistrationStatus.accepted
+        )
+
+    @on(Action.BootNotification)
+    def on_authorize_response(self, id_tag: str):
+        return call_result.AuthorizePayload(
+            id_tag_info=AuthorizationStatus.accepted
         )
 
 

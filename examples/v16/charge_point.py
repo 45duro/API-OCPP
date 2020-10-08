@@ -30,17 +30,29 @@ class ChargePoint(cp):
 
         if response.status == RegistrationStatus.accepted:
             print("Connected to central system.")
+    
+    async def send_authorize(self):
+        request1 = call.AuthorizePayload(
+            id_tag="miTagId9999" 
+        )
+
+        response2 = await self.call(request1)
+        print(response2)
 
 
 async def main():
     async with websockets.connect(
-        'ws://localhost:9000/CP_1',
+        'ws://localhost:9000/TecnobotCLient',
         subprotocols=['ocpp1.6']
     ) as ws:
 
         cp = ChargePoint('CP_1', ws)
 
-        await asyncio.gather(cp.start(), cp.send_boot_notification())
+        await asyncio.gather(
+            cp.start(), 
+            cp.send_boot_notification(),
+            cp.send_authorize()
+            )
 
 
 if __name__ == '__main__':
