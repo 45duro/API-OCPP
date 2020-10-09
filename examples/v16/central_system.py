@@ -48,19 +48,21 @@ class ChargePoint(cp):
     except: 
         print("No se puede hacer la transaccion")
     
-    '''
+    
     @on(Action.StartTransaction)
     def on_start_transaction(self, connector_id: int, id_tag: str, meter_start: int, timestamp: str, **kwargs):
         return call_result.StartTransactionPayload(
-            id_tag_info=datetime.utcnow().isoformat(),
-            transactionId=10
+            transaction_id=connector_id,
+            id_tag_info={
+                "status" : AuthorizationStatus.accepted
+            }
         )
 
     
     @after(Action.StartTransaction)
-    def imprimirJoder(self):
+    def imprimirJoder(self, connector_id: int, id_tag: str, meter_start: int, timestamp: str, **kwargs):
         print("Joder tio")
-    '''
+    
 
 async def on_connect(websocket, path):
     """ For every new charge point that connects, create a ChargePoint instance

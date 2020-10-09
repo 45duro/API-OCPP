@@ -45,7 +45,7 @@ class ChargePoint(cp):
             connector_id=12,
             id_tag="miTagId9999",
             meter_start=20,
-            timestamp=datetime.utcnow().isoformat()
+            timestamp=str(datetime.utcnow().isoformat())
             )
         response2 = await self.call(request2)
         #print(response2)
@@ -62,8 +62,8 @@ async def main():
         await asyncio.gather(
             cp.start(), 
             cp.send_boot_notification(),
-            cp.send_authorize()
-            #cp.send_start_transaction()
+            cp.send_authorize(),
+            cp.send_start_transaction()
             )
 
 
