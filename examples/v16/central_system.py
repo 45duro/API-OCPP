@@ -12,7 +12,7 @@ except ModuleNotFoundError:
     import sys
     sys.exit(1)
 
-from ocpp.routing import on
+from ocpp.routing import on, after
 from ocpp.v16 import ChargePoint as cp
 from ocpp.v16.enums import Action, RegistrationStatus, AuthorizationStatus
 from ocpp.v16 import call_result
@@ -29,12 +29,38 @@ class ChargePoint(cp):
             status=RegistrationStatus.accepted
         )
 
-    @on(Action.BootNotification)
-    def on_authorize_response(self, id_tag: str):
-        return call_result.AuthorizePayload(
-            id_tag_info=AuthorizationStatus.accepted
+    @after(Action.BootNotification)
+    def after_boot_notification(self, charge_point_vendor: str, charge_point_model: str, **kwargs):
+        print("JHoider tio...........")
+
+    
+    try:
+        @on(Action.Authorize)
+        def on_authorize_response(self, id_tag: str):
+            print("He recibido: ", id_tag)
+            
+            return call_result.AuthorizePayload(
+                id_tag_info={
+                    "status" : AuthorizationStatus.accepted
+                }
+            )
+            
+    except: 
+        print("No se puede hacer la transaccion")
+    
+    '''
+    @on(Action.StartTransaction)
+    def on_start_transaction(self, connector_id: int, id_tag: str, meter_start: int, timestamp: str, **kwargs):
+        return call_result.StartTransactionPayload(
+            id_tag_info=datetime.utcnow().isoformat(),
+            transactionId=10
         )
 
+    
+    @after(Action.StartTransaction)
+    def imprimirJoder(self):
+        print("Joder tio")
+    '''
 
 async def on_connect(websocket, path):
     """ For every new charge point that connects, create a ChargePoint instance

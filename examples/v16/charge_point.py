@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from datetime import datetime
 
 try:
     import websockets
@@ -33,11 +34,21 @@ class ChargePoint(cp):
     
     async def send_authorize(self):
         request1 = call.AuthorizePayload(
-            id_tag="miTagId9999" 
-        )
+            id_tag="miTagId9999"
+            )
 
         response2 = await self.call(request1)
-        print(response2)
+        #print(response2)
+    
+    async def send_start_transaction(self):
+        request2 = call.StartTransactionPayload(
+            connector_id=12,
+            id_tag="miTagId9999",
+            meter_start=20,
+            timestamp=datetime.utcnow().isoformat()
+            )
+        response2 = await self.call(request2)
+        #print(response2)
 
 
 async def main():
@@ -52,6 +63,7 @@ async def main():
             cp.start(), 
             cp.send_boot_notification(),
             cp.send_authorize()
+            #cp.send_start_transaction()
             )
 
 
