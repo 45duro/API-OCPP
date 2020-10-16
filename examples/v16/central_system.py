@@ -21,6 +21,8 @@ logging.basicConfig(level=logging.INFO)
 
 
 class ChargePoint(cp):
+    
+    #Decorador principal de pedido clientes 
     @on(Action.BootNotification)
     def on_boot_notitication(self, charge_point_vendor: str, charge_point_model: str, **kwargs):
         return call_result.BootNotificationPayload(
@@ -29,9 +31,11 @@ class ChargePoint(cp):
             status=RegistrationStatus.accepted
         )
 
+
+    #Decorador posterior a la aceptacion del cliente
     @after(Action.BootNotification)
     def after_boot_notification(self, charge_point_vendor: str, charge_point_model: str, **kwargs):
-        print("JHoider tio...........")
+        print("Conexion Mongo o SQL y verificaciones del sistema")
 
     
     try:
@@ -61,7 +65,7 @@ class ChargePoint(cp):
     
     @after(Action.StartTransaction)
     def imprimirJoder(self, connector_id: int, id_tag: str, meter_start: int, timestamp: str, **kwargs):
-        print("Joder tio")
+        print("dispensado de energia")
     
 
 async def on_connect(websocket, path):

@@ -23,8 +23,8 @@ logging.basicConfig(level=logging.INFO)
 class ChargePoint(cp):
     async def send_boot_notification(self):
         request = call.BootNotificationPayload(
-            charge_point_model="Optimus",
-            charge_point_vendor="The Mobility House"
+            charge_point_model="Digital Spaces",
+            charge_point_vendor="Mercacentro"
         )
 
         response = await self.call(request)
