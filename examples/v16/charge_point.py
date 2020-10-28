@@ -53,7 +53,7 @@ class ChargePoint(cp):
 
 async def main():
     async with websockets.connect(
-        'ws://localhost:9000/TecnobotCLient',
+        'ws://149.56.47.168:8080/PCremote',
         subprotocols=['ocpp1.6']
     ) as ws:
 
