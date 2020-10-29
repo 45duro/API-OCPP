@@ -66,7 +66,27 @@ class ChargePoint(cp):
     @after(Action.StartTransaction)
     def imprimirJoder(self, connector_id: int, id_tag: str, meter_start: int, timestamp: str, **kwargs):
         print("dispensado de energia")
+
+    @on(Action.Heartbeat)
+    def on_heartbeat(self):
+        return call_result.HeartbeatPayload(
+            current_time=datetime.utcnow().isoformat()
+        )
     
+    @after(Action.Heartbeat)
+    def imprimirMenssage(self):
+        print("tomando Pulso del cargador")
+
+
+    @on(Action.StatusNotification)
+    def on_status_notification(self, connector_id: int, error_code: str, status: str, timestamp: str, info: str, vendor_id: str, vendor_error_code: str):
+        return call_result.StatusNotificationPayload(
+
+        )
+    
+    @after(Action.StatusNotification)
+    def imprimirMenssage(self, connector_id: int, error_code: str, status: str, timestamp: str, info: str, vendor_id: str, vendor_error_code: str):
+        print("tomando Pulso del cargador")
 
 async def on_connect(websocket, path):
     """ For every new charge point that connects, create a ChargePoint instance
@@ -82,8 +102,10 @@ async def on_connect(websocket, path):
 async def main():
     server = await websockets.serve(
         on_connect,
-        '0.0.0.0',
-        9000,
+        #'0.0.0.0',
+        #9000,
+        '149.56.47.168',
+        8080,
         subprotocols=['ocpp1.6']
     )
 
