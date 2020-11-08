@@ -15,7 +15,7 @@ except ModuleNotFoundError:
 
 from ocpp.v16 import call
 from ocpp.v16 import ChargePoint as cp
-from ocpp.v16.enums import RegistrationStatus, ChargePointErrorCode, ChargePointStatus
+from ocpp.v16.enums import RegistrationStatus, ChargePointErrorCode, ChargePointStatus, Reason
 
 logging.basicConfig(level=logging.INFO)
 
@@ -55,20 +55,38 @@ class ChargePoint(cp):
         request2 = call.HeartbeatPayload (  
             )
         response2 = await self.call(request2)
-
+    
+    
     async def send_status_notification(self):
         request2 = call.StatusNotificationPayload (
             connector_id=12,
             error_code= ChargePointErrorCode.noError,
             status = ChargePointStatus.available,
-            timestamp=str(datetime.utcnow().isoformat())
+            timestamp=str(datetime.utcnow().isoformat()),
+            info= "Accepted",
+            vendor_id = "JonathanVendor", 
+            vendor_error_code = "noError"
+            
             )
         response2 = await self.call(request2)
     
+    async def send_stop_transaction(self):
+        request = call.StopTransactionPayload(
+            #transaction_id = 12,
+            timestamp= str(datetime.utcnow().isoformat()),
+            meter_stop = 90,
+            transaction_id = 12
+            #reason = Reason.emergencyStop
+
+        )
+
+        response2 = await self.call(request)
+
 
 async def main():
     async with websockets.connect(
-        'ws://149.56.47.168:8080/PCremote',
+        #'ws://149.56.47.168:8080/PCremote',
+        'ws://localhost:9000/PCremote',
         subprotocols=['ocpp1.6']
     ) as ws:
 
@@ -80,7 +98,8 @@ async def main():
             cp.send_authorize(),
             cp.send_start_transaction(),
             cp.heartbeat(),
-            cp.send_status_notification()
+            cp.send_status_notification(),
+            cp.send_stop_transaction()
             )
 
 

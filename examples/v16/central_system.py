@@ -68,16 +68,16 @@ class ChargePoint(cp):
 
 
     @on(Action.StopTransaction)
-    def on_stop_transaction(self, transaction_id: int, timestamp: str, meterStop: int):
+    def on_stop_transaction(self, transaction_id: int, timestamp: str, meter_stop: int):
         return call_result.StopTransactionPayload(
             id_tag_info={
-                "status" = AuthorizationStatus.accepted
+                "status" : AuthorizationStatus.accepted
             }
         )
 
     @after(Action.StopTransaction)
-    def imprimir(self, transaction_id: int, timestamp: str, meterStop: int):
-        print("Deteniendo Transaccion en", meterStop, "units recargadas")
+    def imprimir(self, transaction_id: int, timestamp: str, meter_stop: int):
+        print("Deteniendo Transaccion en", meter_stop, "units recargadas")
     
 
     @on(Action.Heartbeat)
@@ -101,6 +101,7 @@ class ChargePoint(cp):
     def imprimirMenssage(self, connector_id: int, error_code: str, status: str, timestamp: str, info: str, vendor_id: str, vendor_error_code: str):
         print("tomando Pulso del cargador")
 
+
 async def on_connect(websocket, path):
     """ For every new charge point that connects, create a ChargePoint instance
     and start listening for messages.
@@ -115,10 +116,10 @@ async def on_connect(websocket, path):
 async def main():
     server = await websockets.serve(
         on_connect,
-        #'0.0.0.0',
-        #9000,
-        '149.56.47.168',
-        8080,
+        '0.0.0.0',
+        9000,
+        ##'149.56.47.168',
+        ##8080,
         subprotocols=['ocpp1.6']
     )
 
