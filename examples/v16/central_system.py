@@ -62,10 +62,23 @@ class ChargePoint(cp):
             }
         )
 
-    
     @after(Action.StartTransaction)
     def imprimirJoder(self, connector_id: int, id_tag: str, meter_start: int, timestamp: str, **kwargs):
-        print("dispensado de energia")
+        print("dispensado de energia ", meter_start, "units")
+
+
+    @on(Action.StopTransaction)
+    def on_stop_transaction(self, transaction_id: int, timestamp: str, meterStop: int):
+        return call_result.StopTransactionPayload(
+            id_tag_info={
+                "status" = AuthorizationStatus.accepted
+            }
+        )
+
+    @after(Action.StopTransaction)
+    def imprimir(self, transaction_id: int, timestamp: str, meterStop: int):
+        print("Deteniendo Transaccion en", meterStop, "units recargadas")
+    
 
     @on(Action.Heartbeat)
     def on_heartbeat(self):

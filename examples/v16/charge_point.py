@@ -15,7 +15,7 @@ except ModuleNotFoundError:
 
 from ocpp.v16 import call
 from ocpp.v16 import ChargePoint as cp
-from ocpp.v16.enums import RegistrationStatus
+from ocpp.v16.enums import RegistrationStatus, ChargePointErrorCode, ChargePointStatus
 
 logging.basicConfig(level=logging.INFO)
 
@@ -26,6 +26,7 @@ class ChargePoint(cp):
             charge_point_model="Digital Spaces",
             charge_point_vendor="Mercacentro"
         )
+        
 
         response = await self.call(request)
 
@@ -49,7 +50,21 @@ class ChargePoint(cp):
             )
         response2 = await self.call(request2)
         #print(response2)
+    
+    async def heartbeat(self):
+        request2 = call.HeartbeatPayload (  
+            )
+        response2 = await self.call(request2)
 
+    async def send_status_notification(self):
+        request2 = call.StatusNotificationPayload (
+            connector_id=12,
+            error_code= ChargePointErrorCode.noError,
+            status = ChargePointStatus.available,
+            timestamp=str(datetime.utcnow().isoformat())
+            )
+        response2 = await self.call(request2)
+    
 
 async def main():
     async with websockets.connect(
@@ -57,13 +72,15 @@ async def main():
         subprotocols=['ocpp1.6']
     ) as ws:
 
-        cp = ChargePoint('CP_1', ws)
+        cp = ChargePoint('PCremote', ws)
 
         await asyncio.gather(
             cp.start(), 
             cp.send_boot_notification(),
             cp.send_authorize(),
-            cp.send_start_transaction()
+            cp.send_start_transaction(),
+            cp.heartbeat(),
+            cp.send_status_notification()
             )
 
 
