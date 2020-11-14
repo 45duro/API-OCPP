@@ -10,8 +10,8 @@ import sys
 #Importaciones Clave
 from ocpp.routing import on, after
 from ocpp.v16 import ChargePoint as cp
-from ocpp.v16.enums import Action, RegistrationStatus, AuthorizationStatus
-from ocpp.v16 import call_result
+from ocpp.v16.enums import Action, RegistrationStatus, AuthorizationStatus, RemoteStartStopStatus
+from ocpp.v16 import call_result, call
 
 #Nivel de acceso 
 #logging.basicConfig(level=logging.INFO)
@@ -55,8 +55,9 @@ async def unregister(websocket):
     await notify_users()
 
 
-async def counter(websocket, path):
+async def counter(websocket, path, objeto_ocpp):
     # register(websocket) sends user_event() to websocket
+
     await register(websocket)
     try:
         await websocket.send(state_event())
@@ -66,9 +67,14 @@ async def counter(websocket, path):
             if data["action"] == "Stop":
                 STATE["value"] = 0
                 await notify_state()
+                await objeto_ocpp.on_authorize_response()
+                #await cp2.enviar(message)
+
             elif data["action"] == "Start":
                 STATE["value"] = 1
                 await notify_state()
+                await objeto_ocpp.on_authorize_response()
+                
             else:
                 logging.error("unsupported event: {}", data)
     finally:
@@ -157,6 +163,22 @@ class ChargePoint(cp):
     def imprimirMenssage(self, connector_id: int, error_code: str, status: str, timestamp: str, info: str, vendor_id: str, vendor_error_code: str):
         print("tomando Pulso del cargador")
 
+    async def notify_stateCP(self):       
+        if USERS:  # asyncio.wait doesn't accept an empty list
+            message = state_event()
+            print("entro en CP: ", message)
+            await asyncio.wait([user.send(message) for user in USERS])
+        
+    async def send_remote_start_transaction(self):
+        message = state_event()
+        print("entro en CP send: ", message)
+        request = call.RemoteStartTransactionPayload(
+            id_tag="miTagId9999"
+
+        )
+
+        response2 = await self.call(request)
+
 
 async def on_connect(websocket, path):
     """ For every new charge point that connects, create a ChargePoint instance
@@ -165,12 +187,21 @@ async def on_connect(websocket, path):
     """
     charge_point_id = path.strip('/')
     cp = ChargePoint(charge_point_id, websocket)
+    if (charge_point_id != "RemotoControl" ):
+        print("Es un cArgador")
+        await cp.start()
+    else:
+        print("Es un Control Remoto")
+        await counter(websocket, path, cp)
 
-    await cp.start()
+
+
 
 async def main():
+    '''
     server = await websockets.serve(
         counter,
+        #controlRemoto,
         #'localhost',
         '0.0.0.0',
         9001,
@@ -178,7 +209,7 @@ async def main():
         ##8080,
         subprotocols=['ocpp1.6']
     )
-
+    '''
     server2 = await websockets.serve(
         on_connect,
         #'localhost',
@@ -188,7 +219,7 @@ async def main():
         ##8080,
         subprotocols=['ocpp1.6']
     )
-    await server.wait_closed()
+    #await server.wait_closed()
     await server2.wait_closed()
 
 if __name__ == '__main__':

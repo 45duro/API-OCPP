@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from datetime import datetime
+import json
 
 try:
     import websockets
@@ -12,10 +13,10 @@ except ModuleNotFoundError:
     import sys
     sys.exit(1)
 
-
-from ocpp.v16 import call
+from ocpp.routing import on, after
+from ocpp.v16 import call, call_result
 from ocpp.v16 import ChargePoint as cp
-from ocpp.v16.enums import RegistrationStatus, ChargePointErrorCode, ChargePointStatus, Reason
+from ocpp.v16.enums import RegistrationStatus, ChargePointErrorCode, ChargePointStatus, Reason, Action, RemoteStartStopStatus
 
 logging.basicConfig(level=logging.INFO)
 
@@ -81,6 +82,27 @@ class ChargePoint(cp):
         )
 
         response2 = await self.call(request)
+
+    @on(Action.RemoteStartTransaction)
+    def remote_start_transaction(self, id_tag: str):
+        print("Respondiendo al server")
+        return call_result.RemoteStartTransactionPayload (
+            status = "Accepted"
+        )
+
+    '''
+    def state_event():
+        print("joder tio")
+        
+        async for message in websocket:
+            data = json.loads(message)
+            print(data)
+    
+    async for message in websocket:
+            data = json.loads(message)
+            print(data)
+    '''
+
 
 
 async def main():
