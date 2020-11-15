@@ -14,7 +14,7 @@ from ocpp.v16.enums import Action, RegistrationStatus, AuthorizationStatus, Remo
 from ocpp.v16 import call_result, call
 
 #Nivel de acceso 
-#logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
 logging.basicConfig()
 STATE = {"value": 0}
 USERS = set()
@@ -67,13 +67,13 @@ async def counter(websocket, path, objeto_ocpp):
             if data["action"] == "Stop":
                 STATE["value"] = 0
                 await notify_state()
-                await objeto_ocpp.on_authorize_response()
+                objeto_ocpp.on_remote_start_transaction( {"status" : "Accepted"})
                 #await cp2.enviar(message)
 
             elif data["action"] == "Start":
                 STATE["value"] = 1
                 await notify_state()
-                await objeto_ocpp.on_authorize_response()
+                objeto_ocpp.on_remote_start_transaction({"status" : "Accepted"})
                 
             else:
                 logging.error("unsupported event: {}", data)
@@ -168,16 +168,18 @@ class ChargePoint(cp):
             message = state_event()
             print("entro en CP: ", message)
             await asyncio.wait([user.send(message) for user in USERS])
-        
-    async def send_remote_start_transaction(self):
-        message = state_event()
-        print("entro en CP send: ", message)
-        request = call.RemoteStartTransactionPayload(
-            id_tag="miTagId9999"
-
+            
+    @on(Action.RemoteStartTransaction)
+    def on_remote_start_transaction(self, status: str):
+        print ("Enviando Start Remoto")
+        return call.RemoteStartTransactionPayload(
+            id_tag = "TransctRomote12"
         )
 
-        response2 = await self.call(request)
+    @after(Action.RemoteStartTransaction)
+    def otroMSN(self):
+        print("despues del remoto")
+    
 
 
 async def on_connect(websocket, path):

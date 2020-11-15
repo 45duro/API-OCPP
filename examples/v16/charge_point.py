@@ -13,7 +13,7 @@ except ModuleNotFoundError:
     import sys
     sys.exit(1)
 
-from ocpp.routing import on, after
+#from ocpp.routing import on, after
 from ocpp.v16 import call, call_result
 from ocpp.v16 import ChargePoint as cp
 from ocpp.v16.enums import RegistrationStatus, ChargePointErrorCode, ChargePointStatus, Reason, Action, RemoteStartStopStatus
@@ -72,24 +72,33 @@ class ChargePoint(cp):
         response2 = await self.call(request2)
     
     async def send_stop_transaction(self):
+        
         request = call.StopTransactionPayload(
             #transaction_id = 12,
             timestamp= str(datetime.utcnow().isoformat()),
             meter_stop = 90,
             transaction_id = 12
             #reason = Reason.emergencyStop
+            
 
         )
 
         response2 = await self.call(request)
+        
 
-    @on(Action.RemoteStartTransaction)
-    def remote_start_transaction(self, id_tag: str):
-        print("Respondiendo al server")
-        return call_result.RemoteStartTransactionPayload (
-            status = "Accepted"
+    async def remote_start_transaction(self):
+        print ("Recibiendo notificacion de Carga Remota")
+        request = call_result.RemoteStartTransactionPayload(
+            status= "Accepted" 
         )
 
+        response2 = await self.call(request)
+    '''
+    async def recibiendoDato(self):
+        ordenTransaction = f"****************entro a recibiendo dato"
+        #ordenTransaction = await ws.recv()
+        print(f"< {ordenTransaction}")
+    '''
     '''
     def state_event():
         print("joder tio")
@@ -112,17 +121,30 @@ async def main():
         subprotocols=['ocpp1.6']
     ) as ws:
 
+        #x = '[3, "12345", {"currentTime": "2019-06-16T11:18:09.591716", "interval": 10, "status": "Accepted"}]'
+
+        #await ws.send(x)
+
+        #greeting = await ws.recv()
+        #print(f"< {greeting}")
+
         cp = ChargePoint('PCremote', ws)
 
         await asyncio.gather(
             cp.start(), 
             cp.send_boot_notification(),
             cp.send_authorize(),
-            cp.send_start_transaction(),
+            #cp.send_start_transaction(),
             cp.heartbeat(),
-            cp.send_status_notification(),
-            cp.send_stop_transaction()
+            cp.send_status_notification()
+            #cp.send_stop_transaction()
+            #cp.remote_start_transaction()
+            #cp.recibiendoDato()
             )
+        
+        
+        
+
 
 
 if __name__ == '__main__':
