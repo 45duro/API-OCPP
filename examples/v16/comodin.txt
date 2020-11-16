@@ -1,0 +1,3 @@
+..\..\api_ocpp\Scripts\activate
+
+cd C:\Users\Administrador\Documents\GitHub\API-OCPP\examples\v16

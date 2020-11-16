@@ -187,19 +187,24 @@ async def on_connect(websocket, path):
     and start listening for messages.
 
     """
-    charge_point_id = path.strip('/')
-    cp = ChargePoint(charge_point_id, websocket)
-    if (charge_point_id != "RemotoControl" ):
-        print("Es un cArgador")
-        await cp.start()
-    else:
-        print("Es un Control Remoto")
-        await counter(websocket, path, cp)
-
+    try:
+        charge_point_id = path.strip('/')
+        cp = ChargePoint(charge_point_id, websocket)
+        if (charge_point_id != "RemotoControl" ):
+            print("Es un cArgador")
+            await cp.start()
+        else:
+            print("Es un Control Remoto")
+            await counter(websocket, path, cp)
+    except websockets.exceptions.ConnectionClosedOK:
+        print ("Cliente Cerrado")
+    
+        
 
 
 
 async def main():
+    
     '''
     server = await websockets.serve(
         counter,
@@ -223,6 +228,7 @@ async def main():
     )
     #await server.wait_closed()
     await server2.wait_closed()
+    
 
 if __name__ == '__main__':
     try:
