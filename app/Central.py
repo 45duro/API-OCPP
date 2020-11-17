@@ -18,8 +18,8 @@ logging.basicConfig(level=logging.INFO)
 logging.basicConfig()
 STATE = {"value": 0}
 USERS = set()
-
-
+hayControlRemoto = 0
+EV = None
 
 
 def state_event():
@@ -55,7 +55,7 @@ async def unregister(websocket):
     await notify_users()
 
 
-async def counter(websocket, path, objeto_ocpp):
+async def counter(websocket, path, objeto_ocpp = None):
     # register(websocket) sends user_event() to websocket
 
     await register(websocket)
@@ -67,13 +67,19 @@ async def counter(websocket, path, objeto_ocpp):
             if data["action"] == "Stop":
                 STATE["value"] = 0
                 await notify_state()
-                objeto_ocpp.on_remote_start_transaction( {"status" : "Accepted"})
+                #objeto_ocpp.on_remote_start_transaction( {"status" : "Accepted"})
+                if(objeto_ocpp != None ):
+                    await objeto_ocpp.enviarOrden()
+                
                 #await cp2.enviar(message)
 
             elif data["action"] == "Start":
                 STATE["value"] = 1
                 await notify_state()
-                objeto_ocpp.on_remote_start_transaction({"status" : "Accepted"})
+                #objeto_ocpp.on_remote_start_transaction({"status" : "Accepted"})
+                if(objeto_ocpp != None ):
+                    await objeto_ocpp.enviarOrden()
+                
                 
             else:
                 logging.error("unsupported event: {}", data)
@@ -168,7 +174,16 @@ class ChargePoint(cp):
             message = state_event()
             print("entro en CP: ", message)
             await asyncio.wait([user.send(message) for user in USERS])
-            
+
+    async def enviarOrden(self):
+        print("enviando orden")
+        msn = call.RemoteStartTransactionPayload(
+            id_tag = "joderTio"
+        )
+
+        response = await self.call(msn)
+
+    '''        
     @on(Action.RemoteStartTransaction)
     def on_remote_start_transaction(self, status: str):
         print ("Enviando Start Remoto")
@@ -179,7 +194,7 @@ class ChargePoint(cp):
     @after(Action.RemoteStartTransaction)
     def otroMSN(self):
         print("despues del remoto")
-    
+    '''
 
 
 async def on_connect(websocket, path):
@@ -188,14 +203,47 @@ async def on_connect(websocket, path):
 
     """
     try:
+        global EV
+        global hayControlRemoto
         charge_point_id = path.strip('/')
+
+        
+        if (charge_point_id != "RemotoControl" ):
+            print("Es un cargador")
+            cp = ChargePoint(charge_point_id, websocket)
+            EV = cp
+            print ("EV es cp: ", EV is cp) 
+            print (EV) 
+            await cp.start()
+            
+        else:
+            print("Es un Control Remoto")
+            print (EV) 
+            await counter(websocket, path, EV)
+        '''
+        
+        if(charge_point_id == "RemotoControl" ):
+            hayControlRemoto = 1
+            print("Es un Control Remoto")
+
+        if (hayControlRemoto==1):
+            cp = ChargePoint(charge_point_id, websocket)
+            await counter(websocket, path, cp)
+            await cp.start()
+        else:
+            print ("Conecte un controlRemoto y luego el cliente")
+        
+        '''
+        '''
         cp = ChargePoint(charge_point_id, websocket)
         if (charge_point_id != "RemotoControl" ):
             print("Es un cArgador")
             await cp.start()
+            await counter(websocket, path, cp)
         else:
             print("Es un Control Remoto")
-            await counter(websocket, path, cp)
+            #await counter(websocket, path)
+        '''
     except websockets.exceptions.ConnectionClosedOK:
         print ("Cliente Cerrado")
     
