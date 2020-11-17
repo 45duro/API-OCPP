@@ -107,7 +107,7 @@
                         "chargingRateUnit",
                         "chargingSchedulePeriod"
                     ]
-                }
+                } 
             },
             "additionalProperties": false,
             "required": [

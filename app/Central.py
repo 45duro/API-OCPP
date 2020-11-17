@@ -177,10 +177,46 @@ class ChargePoint(cp):
 
     async def enviarOrden(self):
         print("enviando orden")
+        '''
         msn = call.RemoteStartTransactionPayload(
-            id_tag = "joderTio"
+            id_tag = "miTagId9999",
+            connector_id = 12,
+            charging_profile = {
+                "charging_profile_id" : 20,
+                "stack_level" : 90, 
+                "charging_profile_purpose":"ChargePointMaxProfile",
+                "charging_profile_kind" :"Absolute",
+                "charging_schedule":{
+                    "charging_rate_unit":"W",
+                    "charging_schedule_period":{
+                        "start_period": 1,
+                        "limit" : 0.9,
+                    }
+                }
+            }
         )
+        '''
 
+        msn = call.RemoteStartTransactionPayload(
+            id_tag = "miTagId9999",
+            connector_id = 12,
+            charging_profile = {
+                "charging_profile_id" : 20,
+                "stack_level" : 90, 
+                "charging_profile_purpose":"ChargePointMaxProfile",
+                "charging_profile_kind" :"Absolute",
+                "charging_schedule": {
+                    "charging_rate_unit":"W",
+                    "charging_schedule_period": [
+                        {"startPeriod": 20},
+                        {"limit": 0.9}
+                    ]
+                }
+                
+                
+            }
+                
+        )
         response = await self.call(msn)
 
     '''        
@@ -188,7 +224,8 @@ class ChargePoint(cp):
     def on_remote_start_transaction(self, status: str):
         print ("Enviando Start Remoto")
         return call.RemoteStartTransactionPayload(
-            id_tag = "TransctRomote12"
+            id_tag = "TransctRomote12",
+
         )
 
     @after(Action.RemoteStartTransaction)
@@ -220,30 +257,7 @@ async def on_connect(websocket, path):
             print("Es un Control Remoto")
             print (EV) 
             await counter(websocket, path, EV)
-        '''
         
-        if(charge_point_id == "RemotoControl" ):
-            hayControlRemoto = 1
-            print("Es un Control Remoto")
-
-        if (hayControlRemoto==1):
-            cp = ChargePoint(charge_point_id, websocket)
-            await counter(websocket, path, cp)
-            await cp.start()
-        else:
-            print ("Conecte un controlRemoto y luego el cliente")
-        
-        '''
-        '''
-        cp = ChargePoint(charge_point_id, websocket)
-        if (charge_point_id != "RemotoControl" ):
-            print("Es un cArgador")
-            await cp.start()
-            await counter(websocket, path, cp)
-        else:
-            print("Es un Control Remoto")
-            #await counter(websocket, path)
-        '''
     except websockets.exceptions.ConnectionClosedOK:
         print ("Cliente Cerrado")
     

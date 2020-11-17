@@ -17,6 +17,7 @@ except ModuleNotFoundError:
 from ocpp.v16 import call, call_result
 from ocpp.v16 import ChargePoint as cp
 from ocpp.v16.enums import RegistrationStatus, ChargePointErrorCode, ChargePointStatus, Reason, Action, RemoteStartStopStatus
+from ocpp.routing import on, after
 
 logging.basicConfig(level=logging.INFO)
 
@@ -36,7 +37,7 @@ class ChargePoint(cp):
     
     async def send_authorize(self):
         request1 = call.AuthorizePayload(
-            id_tag="miTagId9999"
+            id_tag="miTagId9999" 
             )
 
         response2 = await self.call(request1)
@@ -84,8 +85,20 @@ class ChargePoint(cp):
         )
 
         response2 = await self.call(request)
-        
 
+    @on(Action.RemoteStartTransaction)
+    def on_remote_start_transaction(self, id_tag: str, connector_id: int, **kwargs):
+        
+        print ("recibiendo Start Remoto")
+        return call_result.RemoteStartTransactionPayload(
+            status = "Accepted"
+        )
+    '''
+    @after(Action.RemoteStartTransaction)
+    def print(self, status: str):
+        print ("recibiendo Start Remoto")
+    '''
+    '''
     async def remote_start_transaction(self):
         print ("Recibiendo notificacion de Carga Remota")
         request = call_result.RemoteStartTransactionPayload(
@@ -93,6 +106,7 @@ class ChargePoint(cp):
         )
 
         response2 = await self.call(request)
+    '''
     '''
     async def recibiendoDato(self):
         ordenTransaction = f"****************entro a recibiendo dato"
@@ -139,7 +153,7 @@ async def main():
             cp.send_status_notification()
             #cp.send_stop_transaction()
             #cp.remote_start_transaction()
-            #cp.recibiendoDato()
+
             )
         
         
