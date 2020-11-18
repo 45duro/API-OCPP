@@ -69,7 +69,7 @@ async def counter(websocket, path, objeto_ocpp = None):
                 await notify_state()
                 #objeto_ocpp.on_remote_start_transaction( {"status" : "Accepted"})
                 if(objeto_ocpp != None ):
-                    await objeto_ocpp.enviarOrden()
+                    await objeto_ocpp.enviarOrden(STATE["value"])
                 
                 #await cp2.enviar(message)
 
@@ -78,7 +78,7 @@ async def counter(websocket, path, objeto_ocpp = None):
                 await notify_state()
                 #objeto_ocpp.on_remote_start_transaction({"status" : "Accepted"})
                 if(objeto_ocpp != None ):
-                    await objeto_ocpp.enviarOrden()
+                    await objeto_ocpp.enviarOrden(STATE["value"])
                 
                 
             else:
@@ -160,13 +160,13 @@ class ChargePoint(cp):
 
 
     @on(Action.StatusNotification)
-    def on_status_notification(self, connector_id: int, error_code: str, status: str, timestamp: str, info: str, vendor_id: str, vendor_error_code: str):
+    def on_status_notification(self, connector_id: int, error_code: str, status: str, timestamp: str, info: str, vendor_id: str, vendor_error_code: str, **kwargs):
         return call_result.StatusNotificationPayload(
 
         )
     
     @after(Action.StatusNotification)
-    def imprimirMenssage(self, connector_id: int, error_code: str, status: str, timestamp: str, info: str, vendor_id: str, vendor_error_code: str):
+    def imprimirMenssage(self, connector_id: int, error_code: str, status: str, timestamp: str, info: str, vendor_id: str, vendor_error_code: str, **kwargs):
         print("tomando Pulso del cargador")
 
     async def notify_stateCP(self):       
@@ -175,63 +175,40 @@ class ChargePoint(cp):
             print("entro en CP: ", message)
             await asyncio.wait([user.send(message) for user in USERS])
 
-    async def enviarOrden(self):
-        print("enviando orden")
-        '''
-        msn = call.RemoteStartTransactionPayload(
-            id_tag = "miTagId9999",
-            connector_id = 12,
-            charging_profile = {
-                "charging_profile_id" : 20,
-                "stack_level" : 90, 
-                "charging_profile_purpose":"ChargePointMaxProfile",
-                "charging_profile_kind" :"Absolute",
-                "charging_schedule":{
-                    "charging_rate_unit":"W",
-                    "charging_schedule_period":{
-                        "start_period": 1,
-                        "limit" : 0.9,
+    async def enviarOrden(self, run = None):
+        if run:
+            print("enviando orden de carga remota")
+            msn = call.RemoteStartTransactionPayload(
+                id_tag = "miTagId9999",
+                connector_id = 12,
+                charging_profile = {
+                    "charging_profile_id" : 20,
+                    "stack_level" : 90, 
+                    "charging_profile_purpose":"ChargePointMaxProfile",
+                    "charging_profile_kind" :"Absolute",
+                    "charging_schedule": {
+                        "startSchedule": str(datetime.utcnow().isoformat()),
+                        "charging_rate_unit":"W",
+                        "charging_schedule_period": [
+                            {
+                                "startPeriod": 20, 
+                                "limit": 0.1, 
+                                "numberPhases": 3
+                            }
+                        ]
                     }
+                    
+                    
                 }
-            }
-        )
-        '''
-
-        msn = call.RemoteStartTransactionPayload(
-            id_tag = "miTagId9999",
-            connector_id = 12,
-            charging_profile = {
-                "charging_profile_id" : 20,
-                "stack_level" : 90, 
-                "charging_profile_purpose":"ChargePointMaxProfile",
-                "charging_profile_kind" :"Absolute",
-                "charging_schedule": {
-                    "charging_rate_unit":"W",
-                    "charging_schedule_period": [
-                        {"startPeriod": 20},
-                        {"limit": 0.9}
-                    ]
-                }
-                
-                
-            }
-                
-        )
-        response = await self.call(msn)
-
-    '''        
-    @on(Action.RemoteStartTransaction)
-    def on_remote_start_transaction(self, status: str):
-        print ("Enviando Start Remoto")
-        return call.RemoteStartTransactionPayload(
-            id_tag = "TransctRomote12",
-
-        )
-
-    @after(Action.RemoteStartTransaction)
-    def otroMSN(self):
-        print("despues del remoto")
-    '''
+                    
+            )
+            response = await self.call(msn)
+        else:
+            print("Detener orden de carga remota")
+            msn= call.RemoteStopTransactionPayload(
+                transaction_id = 9991
+            )
+            response = await self.call(msn)
 
 
 async def on_connect(websocket, path):
@@ -303,3 +280,4 @@ if __name__ == '__main__':
         loop = asyncio.get_event_loop()
         loop.run_until_complete(main())
         loop.close()
+

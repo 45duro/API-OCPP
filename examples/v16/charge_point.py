@@ -93,38 +93,24 @@ class ChargePoint(cp):
         return call_result.RemoteStartTransactionPayload(
             status = "Accepted"
         )
-    '''
+
     @after(Action.RemoteStartTransaction)
-    def print(self, status: str):
-        print ("recibiendo Start Remoto")
-    '''
-    '''
-    async def remote_start_transaction(self):
-        print ("Recibiendo notificacion de Carga Remota")
-        request = call_result.RemoteStartTransactionPayload(
-            status= "Accepted" 
+    def printer(self, id_tag: str, connector_id: int, **kwargs):
+        print ("recibiendo Start Remoto de: ", id_tag)
+
+
+
+    @on(Action.RemoteStopTransaction)
+    def on_remote_stop_transaction(self, transaction_id: str, **kwargs):
+        
+        print ("recibiendo Stop Remoto")
+        return call_result.RemoteStopTransactionPayload(
+            status = "Accepted"
         )
 
-        response2 = await self.call(request)
-    '''
-    '''
-    async def recibiendoDato(self):
-        ordenTransaction = f"****************entro a recibiendo dato"
-        #ordenTransaction = await ws.recv()
-        print(f"< {ordenTransaction}")
-    '''
-    '''
-    def state_event():
-        print("joder tio")
-        
-        async for message in websocket:
-            data = json.loads(message)
-            print(data)
-    
-    async for message in websocket:
-            data = json.loads(message)
-            print(data)
-    '''
+    @after(Action.RemoteStopTransaction)
+    def printer2(self, transaction_id: str, **kwargs):
+        print ("se ha parado la transaccion id: ", transaction_id)
 
 
 
