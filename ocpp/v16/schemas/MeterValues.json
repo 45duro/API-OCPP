@@ -10,7 +10,7 @@
             "type": "integer"
         },
         "meterValue": {
-            "type": "array",
+            "type": "array", 
             "items": {
                 "type": "object",
                 "properties": {

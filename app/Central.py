@@ -108,7 +108,7 @@ class ChargePoint(cp):
     
     try:
         @on(Action.Authorize)
-        def on_authorize_response(self, id_tag: str):
+        def on_authorize_response(self, id_tag: str, **kwargs):
             print("He recibido: ", id_tag)
             
             return call_result.AuthorizePayload(
@@ -136,7 +136,7 @@ class ChargePoint(cp):
 
 
     @on(Action.StopTransaction)
-    def on_stop_transaction(self, transaction_id: int, timestamp: str, meter_stop: int):
+    def on_stop_transaction(self, transaction_id: int, timestamp: str, meter_stop: int, **kwargs):
         return call_result.StopTransactionPayload(
             id_tag_info={
                 "status" : AuthorizationStatus.accepted
@@ -144,12 +144,12 @@ class ChargePoint(cp):
         )
 
     @after(Action.StopTransaction)
-    def imprimir(self, transaction_id: int, timestamp: str, meter_stop: int):
+    def imprimir(self, transaction_id: int, timestamp: str, meter_stop: int, **kwargs):
         print("Deteniendo Transaccion en", meter_stop, "units recargadas")
     
 
     @on(Action.Heartbeat)
-    def on_heartbeat(self):
+    def on_heartbeat(self, **kwargs):
         return call_result.HeartbeatPayload(
             current_time=datetime.utcnow().isoformat()
         )
@@ -168,6 +168,13 @@ class ChargePoint(cp):
     @after(Action.StatusNotification)
     def imprimirMenssage(self, connector_id: int, error_code: str, status: str, timestamp: str, info: str, vendor_id: str, vendor_error_code: str, **kwargs):
         print("tomando Pulso del cargador")
+
+    @on(Action.MeterValues)
+    def on_meter_values (self, connectorId: int, **kwargs):
+        return call_result.MeterValuesPayload(
+            
+        )
+
 
     async def notify_stateCP(self):       
         if USERS:  # asyncio.wait doesn't accept an empty list
