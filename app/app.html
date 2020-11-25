@@ -54,6 +54,7 @@
                 users = document.querySelector('.users'),
                 //cadena = "ws://localhost:9000/RemotoControl" + (Math.floor(Math.random()*(10-1)+1));
                 cadena = "ws://localhost:9000/RemotoControl";
+                //cadena = "ws://149.56.47.168:8080/RemotoControl";
                 websocket = new WebSocket(cadena);
             off.onclick = function (event) {
                 websocket.send(JSON.stringify({action: 'Stop'}));
@@ -65,11 +66,16 @@
                 data = JSON.parse(event.data);
                 switch (data.type) {
                     case 'state':
-                        value.textContent = data.value;
+                        if(data.value == 1){
+                            value.textContent = "Run";    
+                        }else{
+                            value.textContent = "Stop";
+                        }
+                        
                         break;
                     case 'users':
                         users.textContent = (
-                            data.count.toString() + " user" +
+                            data.count.toString() + " control" +
                             (data.count == 1 ? "" : "s"));
                         break;
                     default:

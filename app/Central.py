@@ -21,6 +21,10 @@ USERS = set()
 hayControlRemoto = 0
 EV = None
 
+#Variables de Transaccion
+idConector = 0
+idTag = "" 
+
 
 def state_event():
     recibe = json.dumps({"type": "state", **STATE})
@@ -109,6 +113,8 @@ class ChargePoint(cp):
     try:
         @on(Action.Authorize)
         def on_authorize_response(self, id_tag: str, **kwargs):
+            global idTag
+            idTag = id_tag
             print("He recibido: ", id_tag)
             
             return call_result.AuthorizePayload(
@@ -161,6 +167,8 @@ class ChargePoint(cp):
 
     @on(Action.StatusNotification)
     def on_status_notification(self, connector_id: int, error_code: str, status: str, timestamp: str, info: str, vendor_id: str, vendor_error_code: str, **kwargs):
+        global idConector
+        idConector = connector_id
         return call_result.StatusNotificationPayload(
 
         )
@@ -183,11 +191,13 @@ class ChargePoint(cp):
             await asyncio.wait([user.send(message) for user in USERS])
 
     async def enviarOrden(self, run = None):
+        global idTag
+        global idConector
         if run:
             print("enviando orden de carga remota")
             msn = call.RemoteStartTransactionPayload(
-                id_tag = "miTagId9999",
-                connector_id = 12,
+                id_tag = str(idTag),
+                connector_id = idConector,
                 charging_profile = {
                     "charging_profile_id" : 20,
                     "stack_level" : 90, 
