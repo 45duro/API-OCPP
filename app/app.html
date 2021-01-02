@@ -53,8 +53,8 @@
                 value = document.querySelector('.value'),
                 users = document.querySelector('.users'),
                 //cadena = "ws://localhost:9000/RemotoControl" + (Math.floor(Math.random()*(10-1)+1));
-                cadena = "ws://localhost:9000/RemotoControl";
-                //cadena = "ws://149.56.47.168:8080/RemotoControl";
+                //cadena = "ws://localhost:9000/RemotoControl";
+                cadena = "ws://149.56.47.168:8080/RemotoControl";
                 websocket = new WebSocket(cadena);
             off.onclick = function (event) {
                 websocket.send(JSON.stringify({action: 'Stop'}));

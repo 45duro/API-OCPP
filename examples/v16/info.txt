@@ -1,0 +1,7 @@
+..\..\api_ocpp\Scripts\activate
+
+python central_system.py
+python central.py
+ws://centralsystem.circontrol.com:5252
+
+ws://149.56.47.168:8080

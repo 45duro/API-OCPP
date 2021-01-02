@@ -139,6 +139,7 @@ class ChargePoint(cp):
     @after(Action.StartTransaction)
     def imprimirJoder(self, connector_id: int, id_tag: str, meter_start: int, timestamp: str, **kwargs):
         print("dispensado de energia ", meter_start, "units")
+        print("Otras medidas: ", **kwargs)
 
 
     @on(Action.StopTransaction)
@@ -151,7 +152,7 @@ class ChargePoint(cp):
 
     @after(Action.StopTransaction)
     def imprimir(self, transaction_id: int, timestamp: str, meter_stop: int, **kwargs):
-        print("Deteniendo Transaccion en", meter_stop, "units recargadas")
+        print("Deteniendo Transaccion en", meter_stop, "units recargadas", "id de transaccion: ", transaction_id)
     
 
     @on(Action.Heartbeat)
@@ -178,7 +179,8 @@ class ChargePoint(cp):
         print("tomando Pulso del cargador")
 
     @on(Action.MeterValues)
-    def on_meter_values (self, connectorId: int, **kwargs):
+    
+    def on_meter_values (self, connector_id: int, **kwargs):
         return call_result.MeterValuesPayload(
             
         )
@@ -197,33 +199,15 @@ class ChargePoint(cp):
             print("enviando orden de carga remota")
             msn = call.RemoteStartTransactionPayload(
                 id_tag = str(idTag),
-                connector_id = idConector,
-                charging_profile = {
-                    "charging_profile_id" : 20,
-                    "stack_level" : 90, 
-                    "charging_profile_purpose":"ChargePointMaxProfile",
-                    "charging_profile_kind" :"Absolute",
-                    "charging_schedule": {
-                        "startSchedule": str(datetime.utcnow().isoformat()),
-                        "charging_rate_unit":"W",
-                        "charging_schedule_period": [
-                            {
-                                "startPeriod": 20, 
-                                "limit": 0.1, 
-                                "numberPhases": 3
-                            }
-                        ]
-                    }
-                    
-                    
-                }
+                connector_id = idConector
+                
                     
             )
             response = await self.call(msn)
         else:
             print("Detener orden de carga remota")
             msn= call.RemoteStopTransactionPayload(
-                transaction_id = 9991
+                transaction_id = 1
             )
             response = await self.call(msn)
 
@@ -276,10 +260,10 @@ async def main():
     server2 = await websockets.serve(
         on_connect,
         #'localhost',
-        '0.0.0.0',
-        9000,
-        ##'149.56.47.168',
-        ##8080,
+        #'0.0.0.0',
+        #9000,
+        '149.56.47.168',
+        8080,
         subprotocols=['ocpp1.6']
     )
     #await server.wait_closed()
