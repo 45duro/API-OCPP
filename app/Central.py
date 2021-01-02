@@ -152,7 +152,7 @@ class ChargePoint(cp):
 
     @after(Action.StopTransaction)
     def imprimir(self, transaction_id: int, timestamp: str, meter_stop: int, **kwargs):
-        print("Deteniendo Transaccion en", meter_stop, "units recargadas")
+        print("Deteniendo Transaccion en", meter_stop, "units recargadas", "id de transaccion: ", transaction_id)
     
 
     @on(Action.Heartbeat)
@@ -200,6 +200,7 @@ class ChargePoint(cp):
             msn = call.RemoteStartTransactionPayload(
                 id_tag = str(idTag),
                 connector_id = idConector
+                
                     
             )
             response = await self.call(msn)
@@ -259,10 +260,10 @@ async def main():
     server2 = await websockets.serve(
         on_connect,
         #'localhost',
-        '0.0.0.0',
-        9000,
-        ##'149.56.47.168',
-        ##8080,
+        #'0.0.0.0',
+        #9000,
+        '149.56.47.168',
+        8080,
         subprotocols=['ocpp1.6']
     )
     #await server.wait_closed()
